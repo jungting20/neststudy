@@ -4,20 +4,30 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Repository } from 'typeorm';
+import { MovieDetail } from './entities/movie-detail.entity';
 
 @Injectable()
 export class MovieService {
   constructor(
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
+
+    @InjectRepository(MovieDetail)
+    private readonly movieDetailRepository: Repository<MovieDetail>,
   ) {}
 
   async create(createMovieDto: CreateMovieDto) {
-    const movie = await this.movieRepository.save(createMovieDto);
-
-    await this.movieRepository.findOne({
-      where: { id: movie.id },
+    const movieDetail = await this.movieDetailRepository.save({
+      detail: createMovieDto.detail,
     });
+
+    const movie = await this.movieRepository.save({
+      title: createMovieDto.title,
+      genre: createMovieDto.genre,
+      detail: movieDetail,
+    });
+
+    return movie;
   }
 
   findAll(title?: string) {
@@ -25,7 +35,10 @@ export class MovieService {
   }
 
   async findOne(id: number) {
-    const movie = await this.movieRepository.findOne({ where: { id } });
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
 
     if (!movie) {
       return new NotFoundException('없음');
@@ -35,13 +48,25 @@ export class MovieService {
   }
 
   async update(id: number, updateMovieDto: UpdateMovieDto) {
-    const movie = await this.movieRepository.findOne({ where: { id } });
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
 
     if (!movie) {
       return new NotFoundException('없음');
     }
 
-    await this.movieRepository.update({ id }, updateMovieDto);
+    const { detail, ...movieRest } = updateMovieDto;
+
+    if (detail) {
+      await this.movieDetailRepository.update(
+        { id: movie.detail.id },
+        { detail },
+      );
+    }
+
+    await this.movieRepository.update({ id }, movieRest);
 
     const newMovie = await this.movieRepository.findOne({ where: { id } });
 

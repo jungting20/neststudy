@@ -16,6 +16,5 @@ export class MovieDetail {
   detail: string;
 
   @OneToOne(() => Movie)
-  @JoinColumn()
   movie: Movie;
 }
