@@ -1,13 +1,15 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
-  VersionColumn,
 } from 'typeorm';
+import { BaseTable } from './base.entity';
+import { MovieDetail } from './movie-detail.entity';
 
 @Entity()
-export class Movie {
+export class Movie extends BaseTable {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -17,12 +19,7 @@ export class Movie {
   @Column()
   genre: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @CreateDateColumn()
-  updatedAt: Date;
-
-  @VersionColumn()
-  version: number;
+  @OneToOne(() => MovieDetail)
+  @JoinColumn()
+  movie_detail: MovieDetail;
 }
