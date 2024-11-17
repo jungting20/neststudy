@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  BadRequestException,
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,

@@ -8,6 +8,7 @@ import {
 
 export class CreateMovieDto {
   @IsNotEmpty()
+  @IsString()
   title: string;
 
   @IsNotEmpty()
