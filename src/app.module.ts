@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -12,6 +17,8 @@ import { Genre } from './genre/entities/genre.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { envVariables } from './common/const/env.const';
+import BearerTokenMiddleware from './auth/middleware/bearer-token.middleware';
 
 @Module({
   imports: [
@@ -32,12 +39,12 @@ import { User } from './user/entities/user.entity';
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>('DB_TYPE') as 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
+        type: configService.get<string>(envVariables.dbType) as 'postgres',
+        host: configService.get<string>(envVariables.dbHost),
+        port: configService.get<number>(envVariables.dbPort),
+        username: configService.get<string>(envVariables.dbUsername),
+        password: configService.get<string>(envVariables.dbPassword),
+        database: configService.get<string>(envVariables.dbDatabase),
         // entities: [__dirname + '/**/*.entity{.ts,.js}'],
         entities: [Movie, MovieDetail, Director, Genre, User],
         synchronize: true,
@@ -62,4 +69,18 @@ import { User } from './user/entities/user.entity';
     UserModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(BearerTokenMiddleware)
+      .exclude({
+        path: 'auth/login',
+        method: RequestMethod.POST,
+      })
+      .exclude({
+        path: 'auth/register',
+        method: RequestMethod.POST,
+      })
+      .forRoutes('*');
+  }
+}
