@@ -25,9 +25,8 @@ class BearerTokenMiddleware implements NestMiddleware {
       next();
       return;
     } else {
-      const token = this.validateBearerToken(authHeader);
-
       try {
+        const token = this.validateBearerToken(authHeader);
         const decodedPayload = this.jwtService.decode(token);
 
         if (
@@ -45,21 +44,14 @@ class BearerTokenMiddleware implements NestMiddleware {
           secret: this.configService.get<string>(secretKey),
         });
 
-        const isRefreshToken = decodedPayload.type === 'refresh';
-
-        if (isRefreshToken) {
-          if (payload.type !== 'refresh') {
-            throw new BadRequestException('리프레시 토콘을 입력해 주세요');
-          }
-        } else {
-          if (payload.type !== 'access') {
-            throw new BadRequestException('엑세스 토콘을 입력해주세요');
-          }
-        }
         req.user = payload;
         next();
       } catch (error) {
-        throw new UnauthorizedException('토큰이 만료되었습니다!');
+        if (error.name === 'TokenExpireError') {
+          throw new UnauthorizedException('토큰이 만료됐습니다.');
+        }
+        next();
+        // throw new UnauthorizedException('토큰이 만료되었습니다!');
       }
     }
   }
