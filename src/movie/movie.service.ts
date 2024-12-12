@@ -77,7 +77,13 @@ export class MovieService {
         .add(genres.map((genre) => ({ id: genre.id })));
 
       await qr.commitTransaction();
-      return movie;
+
+      const resMovie = await this.movieRepository.findOne({
+        where: { id: movie.identifiers[0].id },
+        relations: ['detail', 'director', 'genres'],
+      });
+
+      return resMovie;
     } catch (error) {
       await qr.rollbackTransaction();
       throw error;
