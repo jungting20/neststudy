@@ -21,6 +21,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Public } from 'src/auth/decorater/public.decorator';
 import { RBAC } from 'src/auth/decorater/rbac.decorator';
 import { Role } from 'src/user/entities/user.entity';
+import { GetMoviesDto } from './dto/get-movies.dto';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,12 +30,8 @@ export class MovieController {
 
   @Public()
   @Get()
-  findAll(
-    @Request() req: any,
-    @Query('title', MovieTitleValidationPipe) title?: string,
-  ) {
-    console.log('[movie.controller.ts]-line:35-word:', req.user);
-    return this.movieService.findAll(title);
+  findAll(@Request() req: any, @Query() dto?: GetMoviesDto) {
+    return this.movieService.findAll(dto);
   }
 
   @Public()
@@ -48,7 +45,6 @@ export class MovieController {
 
   @Post()
   @RBAC(Role.admin)
-  @UseGuards(AuthGuard)
   create(@Body() createMovieDto: CreateMovieDto) {
     return this.movieService.create(createMovieDto);
   }
