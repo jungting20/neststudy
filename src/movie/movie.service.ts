@@ -3,7 +3,7 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from 'src/director/entities/director.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
@@ -29,69 +29,69 @@ export class MovieService {
     private readonly commonService: CommonService,
   ) {}
 
-  async create(createMovieDto: CreateMovieDto) {
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-    try {
-      const director = await qr.manager.findOne(Director, {
-        where: { id: createMovieDto.directorId },
-      });
+  async create(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+    // const qr = this.dataSource.createQueryRunner();
+    // await qr.connect();
+    // await qr.startTransaction();
+    // try {
+    const director = await qr.manager.findOne(Director, {
+      where: { id: createMovieDto.directorId },
+    });
 
-      if (!director) {
-        throw new NotFoundException('감독이 없음');
-      }
-
-      const genres = await qr.manager.findByIds(Genre, createMovieDto.genreIds);
-
-      if (genres.length !== createMovieDto.genreIds.length) {
-        throw new NotFoundException('존재하지않느 장르가 포함됨');
-      }
-
-      const movieDetail = await qr.manager
-        .createQueryBuilder()
-        .insert()
-        .into(MovieDetail)
-        .values({
-          detail: createMovieDto.detail,
-        })
-        .execute();
-
-      const moviewDetailId = movieDetail.identifiers[0].id;
-
-      const movie = await qr.manager
-        .createQueryBuilder()
-        .insert()
-        .into(Movie)
-        .values({
-          title: createMovieDto.title,
-          detail: {
-            id: moviewDetailId,
-          },
-          director,
-        })
-        .execute();
-
-      await qr.manager
-        .createQueryBuilder()
-        .relation(Movie, 'genres')
-        .of(movie.identifiers[0].id)
-        .add(genres.map((genre) => ({ id: genre.id })));
-
-      await qr.commitTransaction();
-
-      const resMovie = await this.movieRepository.findOne({
-        where: { id: movie.identifiers[0].id },
-        relations: ['detail', 'director', 'genres'],
-      });
-
-      return resMovie;
-    } catch (error) {
-      await qr.rollbackTransaction();
-      throw error;
-    } finally {
-      await qr.release();
+    if (!director) {
+      throw new NotFoundException('감독이 없음');
     }
+
+    const genres = await qr.manager.findByIds(Genre, createMovieDto.genreIds);
+
+    if (genres.length !== createMovieDto.genreIds.length) {
+      throw new NotFoundException('존재하지않느 장르가 포함됨');
+    }
+
+    const movieDetail = await qr.manager
+      .createQueryBuilder()
+      .insert()
+      .into(MovieDetail)
+      .values({
+        detail: createMovieDto.detail,
+      })
+      .execute();
+
+    const moviewDetailId = movieDetail.identifiers[0].id;
+
+    const movie = await qr.manager
+      .createQueryBuilder()
+      .insert()
+      .into(Movie)
+      .values({
+        title: createMovieDto.title,
+        detail: {
+          id: moviewDetailId,
+        },
+        director,
+      })
+      .execute();
+
+    await qr.manager
+      .createQueryBuilder()
+      .relation(Movie, 'genres')
+      .of(movie.identifiers[0].id)
+      .add(genres.map((genre) => ({ id: genre.id })));
+
+    // await qr.commitTransaction();
+
+    const resMovie = await qr.manager.findOne(Movie, {
+      where: { id: movie.identifiers[0].id },
+      relations: ['detail', 'director', 'genres'],
+    });
+
+    return resMovie;
+    // } catch (error) {
+    //   await qr.rollbackTransaction();
+    //   throw error;
+    // } finally {
+    //   await qr.release();
+    // }
   }
 
   async findAll(dto?: GetMoviesDto) {
