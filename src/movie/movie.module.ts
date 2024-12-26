@@ -6,11 +6,22 @@ import { Movie } from './entities/movie.entity';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from 'src/director/entities/director.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
-import { CommonService } from 'src/common/common.service';
+import { CommonModule } from 'src/common/common.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Movie, MovieDetail, Director, Genre])],
+  imports: [
+    TypeOrmModule.forFeature([Movie, MovieDetail, Director, Genre]),
+    CommonModule,
+    MulterModule.register({
+      storage: diskStorage({
+        destination: join(process.cwd(), 'public', 'movie'),
+      }),
+    }),
+  ],
   controllers: [MovieController],
-  providers: [MovieService, CommonService],
+  providers: [MovieService],
 })
 export class MovieModule {}
