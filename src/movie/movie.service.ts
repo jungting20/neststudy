@@ -31,7 +31,11 @@ export class MovieService {
     private readonly commonService: CommonService,
   ) {}
 
-  async create(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+  async create(
+    createMovieDto: CreateMovieDto,
+    userId: number,
+    qr: QueryRunner,
+  ) {
     // const qr = this.dataSource.createQueryRunner();
     // await qr.connect();
     // await qr.startTransaction();
@@ -66,11 +70,6 @@ export class MovieService {
     const tempFolder = join('public', 'temp', createMovieDto.movieFileName);
     const movieFolder = join('public', 'movie', createMovieDto.movieFileName);
 
-    await rename(
-      join(process.cwd(), tempFolder),
-      join(process.cwd(), movieFolder),
-    );
-
     const movie = await qr.manager
       .createQueryBuilder()
       .insert()
@@ -81,6 +80,9 @@ export class MovieService {
           id: moviewDetailId,
         },
         director,
+        creator: {
+          id: userId,
+        },
         movieFilePath: movieFolder,
       })
       .execute();
@@ -90,6 +92,11 @@ export class MovieService {
       .relation(Movie, 'genres')
       .of(movie.identifiers[0].id)
       .add(genres.map((genre) => ({ id: genre.id })));
+
+    await rename(
+      join(process.cwd(), tempFolder),
+      join(process.cwd(), movieFolder),
+    );
 
     // await qr.commitTransaction();
 
