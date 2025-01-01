@@ -28,6 +28,7 @@ import { QueryFailedError } from 'typeorm';
 import { QueryFailedFilter } from './common/filter/query-failed-filter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { MovieUserLike } from './movie/entities/movie-user-like.entity';
 
 @Module({
   imports: [
@@ -55,7 +56,7 @@ import { join } from 'path';
         password: configService.get<string>(envVariables.dbPassword),
         database: configService.get<string>(envVariables.dbDatabase),
         // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        entities: [Movie, MovieDetail, Director, Genre, User],
+        entities: [Movie, MovieDetail, Director, Genre, User, MovieUserLike],
         synchronize: true,
       }),
       inject: [ConfigService],

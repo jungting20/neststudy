@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +15,7 @@ import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
 import { rename } from 'fs/promises';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MovieService {
@@ -26,6 +31,9 @@ export class MovieService {
 
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
 
     private readonly dataSource: DataSource,
     private readonly commonService: CommonService,
@@ -236,5 +244,23 @@ export class MovieService {
     }
 
     await this.movieRepository.delete({ id });
+  }
+
+  async toggleMovieLike(movieId: number, userId: number, isLike: boolean) {
+    const movie = await this.movieRepository.findOne({
+      where: { id: movieId },
+    });
+
+    if (!movie) {
+      return new BadRequestException('영화가 없음');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return new BadRequestException('사용자가 없음');
+    }
+
+    // return this.movieUserLikeService.like(id, userId);
   }
 }

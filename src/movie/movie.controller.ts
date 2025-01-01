@@ -11,8 +11,6 @@ import {
   ClassSerializerInterceptor,
   Query,
   Request,
-  UploadedFile,
-  BadRequestException,
 } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -22,7 +20,6 @@ import { RBAC } from 'src/auth/decorater/rbac.decorator';
 import { Role } from 'src/user/entities/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UserId } from 'src/user/decorator/user-id.decorator';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 
@@ -72,5 +69,23 @@ export class MovieController {
   @RBAC(Role.admin)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.movieService.remove(id);
+  }
+
+  @Post(':id/like')
+  @RBAC(Role.user)
+  createMovieLike(
+    @Param('id', ParseIntPipe) movieId: number,
+    @UserId() userId: number,
+  ) {
+    // return this.movieService.like(id, userId);
+  }
+
+  @Post(':id/dislike')
+  @RBAC(Role.user)
+  createMovieDisLike(
+    @Param('id', ParseIntPipe) movieId: number,
+    @UserId() userId: number,
+  ) {
+    // return this.movieService.like(id, userId);
   }
 }
