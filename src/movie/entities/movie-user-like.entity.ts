@@ -1,21 +1,28 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Movie } from './movie.entity';
 import { User } from 'src/user/entities/user.entity';
 
 // @Entity();
 @Entity()
 export class MovieUserLike {
-  @PrimaryGeneratedColumn({
+  @PrimaryColumn({
     name: 'movieId',
     type: 'int8',
   })
-  @ManyToOne(() => Movie, (movie) => movie.likedUsers)
+  @ManyToOne(() => Movie, (movie) => movie.likedUsers, {
+    onDelete: 'CASCADE',
+  })
   movie: Movie;
 
-  @PrimaryGeneratedColumn({
+  @PrimaryColumn({
     name: 'userId',
     type: 'int8',
   })
-  @ManyToOne(() => User, (user) => user.likedMovies)
+  @ManyToOne(() => User, (user) => user.likedMovies, {
+    onDelete: 'CASCADE',
+  })
   user: User;
+
+  @Column()
+  isLike: boolean;
 }

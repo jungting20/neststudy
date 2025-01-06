@@ -32,8 +32,8 @@ export class MovieController {
 
   @Public()
   @Get()
-  findAll(@Request() req: any, @Query() dto?: GetMoviesDto) {
-    return this.movieService.findAll(dto);
+  findAll(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
+    return this.movieService.findAll(dto, userId);
   }
 
   @Public()
@@ -77,7 +77,7 @@ export class MovieController {
     @Param('id', ParseIntPipe) movieId: number,
     @UserId() userId: number,
   ) {
-    // return this.movieService.like(id, userId);
+    return this.movieService.toggleMovieLike(movieId, userId, true);
   }
 
   @Post(':id/dislike')
@@ -86,6 +86,6 @@ export class MovieController {
     @Param('id', ParseIntPipe) movieId: number,
     @UserId() userId: number,
   ) {
-    // return this.movieService.like(id, userId);
+    return this.movieService.toggleMovieLike(movieId, userId, false);
   }
 }
