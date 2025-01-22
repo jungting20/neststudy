@@ -9,6 +9,7 @@ import { Genre } from 'src/genre/entities/genre.entity';
 import { CommonModule } from 'src/common/common.module';
 import { User } from 'src/user/entities/user.entity';
 import { MovieUserLike } from './entities/movie-user-like.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -21,6 +22,9 @@ import { MovieUserLike } from './entities/movie-user-like.entity';
       MovieUserLike,
     ]),
     CommonModule,
+    CacheModule.register({
+      ttl: 3000,
+    }),
   ],
   controllers: [MovieController],
   providers: [MovieService],

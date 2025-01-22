@@ -10,7 +10,6 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,
-  Request,
 } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -24,6 +23,7 @@ import { UserId } from 'src/user/decorator/user-id.decorator';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 
 import { QueryRunner as QR } from 'typeorm';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -34,6 +34,13 @@ export class MovieController {
   @Get()
   findAll(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
     return this.movieService.findAll(dto, userId);
+  }
+
+  // /movie/recent
+  @Get('recent')
+  @UseInterceptors(CacheInterceptor)
+  getMovieRecent() {
+    return this.movieService.findRecent();
   }
 
   @Public()
