@@ -13,6 +13,10 @@ export class DirectorService {
   ) {}
 
   create(createDirectorDto: CreateDirectorDto) {
+    console.log(
+      '[director.service.ts]-line:16-word:createDirectorDto',
+      createDirectorDto,
+    );
     return this.directorRepository.save(createDirectorDto);
   }
 

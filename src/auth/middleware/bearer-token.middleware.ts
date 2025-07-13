@@ -28,57 +28,62 @@ class BearerTokenMiddleware implements NestMiddleware {
     if (!authHeader) {
       next();
       return;
-    } else {
-      try {
-        const token = this.validateBearerToken(authHeader);
+    }
 
-        const tokenKey = `TOKEN_${token}`;
-        const cachedPayload = await this.cacheManager.get(tokenKey);
+    try {
+      const token = this.validateBearerToken(authHeader);
 
-        if (cachedPayload) {
-          req.user = cachedPayload;
-          next();
-          return;
-        }
+      const blockedToken = await this.cacheManager.get(`BLOCK_TOKEN_${token}`);
 
-        const decodedPayload = this.jwtService.decode(token);
-
-        if (
-          decodedPayload.type !== 'access' &&
-          decodedPayload.type !== 'refresh'
-        ) {
-          throw new BadRequestException('잘못된 토큰 입니다.');
-        }
-
-        const secretKey =
-          decodedPayload.type === 'refresh'
-            ? envVariables.refreshTokenSecret
-            : envVariables.accessTokenSecret;
-
-        const payload = await this.jwtService.verifyAsync(token, {
-          secret: this.configService.get<string>(secretKey),
-        });
-
-        const expiryDate = +new Date(payload.exp * 1000);
-
-        const now = +Date.now();
-        const differenceInSeconds = (expiryDate - now) / 1000;
-
-        await this.cacheManager.set(
-          tokenKey,
-          payload,
-          Math.max((differenceInSeconds - 30) * 1000, 1),
-        );
-
-        req.user = payload;
-        next();
-      } catch (error) {
-        if (error.name === 'TokenExpireError') {
-          throw new UnauthorizedException('토큰이 만료됐습니다.');
-        }
-        next();
-        // throw new UnauthorizedException('토큰이 만료되었습니다!');
+      if (blockedToken) {
+        throw new UnauthorizedException('차단된 토큰 입니다.');
       }
+
+      const tokenKey = `TOKEN_${token}`;
+      const cachedPayload = await this.cacheManager.get(tokenKey);
+
+      if (cachedPayload) {
+        req.user = cachedPayload;
+        next();
+        return;
+      }
+
+      const decodedPayload = this.jwtService.decode(token);
+      if (
+        decodedPayload.type !== 'access' &&
+        decodedPayload.type !== 'refresh'
+      ) {
+        throw new BadRequestException('잘못된 토큰 입니다.');
+      }
+
+      const secretKey =
+        decodedPayload.type === 'refresh'
+          ? envVariables.refreshTokenSecret
+          : envVariables.accessTokenSecret;
+
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>(secretKey),
+      });
+
+      const expiryDate = +new Date(payload.exp * 1000);
+
+      const now = +Date.now();
+      const differenceInSeconds = (expiryDate - now) / 1000;
+
+      await this.cacheManager.set(
+        tokenKey,
+        payload,
+        Math.max((differenceInSeconds - 30) * 1000, 1),
+      );
+
+      req.user = payload;
+      next();
+    } catch (error) {
+      if (error.name === 'TokenExpireError') {
+        throw new UnauthorizedException('토큰이 만료됐습니다.');
+      }
+      next();
+      // throw new UnauthorizedException('토큰이 만료되었습니다!');
     }
   }
 
