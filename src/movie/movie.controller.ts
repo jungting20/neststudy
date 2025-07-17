@@ -24,6 +24,7 @@ import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 
 import { QueryRunner as QR } from 'typeorm';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { Throttle } from 'src/common/decorator/throttle.decorator';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -31,6 +32,7 @@ export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
   @Public()
+  @Throttle({ count: 5, unit: 'minute' })
   @Get()
   findAll(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
     return this.movieService.findAll(dto, userId);
