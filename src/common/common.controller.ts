@@ -18,7 +18,7 @@ export class CommonController {
       fileFilter: (req, file, cb) => {
         if (file.mimetype !== 'video/mp4') {
           return cb(
-            new BadRequestException('MP$ 타입만 업로드 가능합니다'),
+            new BadRequestException('MP4 타입만 업로드 가능합니다'),
             false,
           );
         }
