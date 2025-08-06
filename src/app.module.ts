@@ -31,6 +31,8 @@ import { MovieUserLike } from './movie/entities/movie-user-like.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 
 @Module({
   imports: [
@@ -73,6 +75,17 @@ import { ScheduleModule } from '@nestjs/schedule';
     GenreModule,
     AuthModule,
     UserModule,
+    WinstonModule.forRoot({
+      level: 'debug',
+      transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({
+          filename: 'logs/error.log',
+          level: 'error',
+        }),
+        new winston.transports.File({ filename: 'logs/all.log' }),
+      ],
+    }),
     CacheModule.register({
       ttl: 0,
       isGlobal: true,

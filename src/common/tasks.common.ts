@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { readdir, unlink } from 'fs/promises';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { join, parse } from 'path';
 
 @Injectable()
 export class TasksService {
-  constructor() {}
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService,
+  ) {}
 
   // @Cron('* * * * * *')
   async eraseOrphanFiles() {
@@ -36,5 +39,10 @@ export class TasksService {
     );
 
     // console.log('[tasks.common.ts]-line:34-word:', deleteFilesTargets);
+  }
+
+  // @Cron('* * * * * *')
+  async logEverySecond() {
+    // this.logger.debug('Hello world!');
   }
 }
