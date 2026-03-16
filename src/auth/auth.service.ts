@@ -12,12 +12,14 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { envVariables } from 'src/common/const/env.const';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
+    private readonly userService: UserService,
     private readonly jwtService: JwtService,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
@@ -111,14 +113,7 @@ export class AuthService {
       throw new BadRequestException('User already exists');
     }
 
-    const hash = await bcrypt.hash(
-      password,
-      this.configService.get<number>(envVariables.hashRounds),
-    );
-
-    await this.userRepository.save({ email, password: hash });
-
-    return this.userRepository.findOne({ where: { email } });
+    return this.userService.create({ email, password });
   }
 
   async authenticate(email: string, password: string) {
