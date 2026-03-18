@@ -5,13 +5,13 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+    @Get()
   getMovies() {
     return this.appService.getManyMovies();
   }
 
-  @Get()
-  getMovie() {
+    @Get()
+    getMovie() {
     return {
       id: 1,
       title: 'The Shawshank Redemption',
